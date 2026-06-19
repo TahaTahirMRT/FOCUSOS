@@ -1,0 +1,2980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusOS — AI Attention & Deep Work OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #080B14;
+    --surface: #0E1320;
+    --surface2: #151C2E;
+    --surface3: #1C2440;
+    --border: #1E2A45;
+    --border2: #2A3756;
+    --accent: #3B82F6;
+    --accent2: #6366F1;
+    --accent-glow: rgba(59,130,246,0.15);
+    --green: #10B981;
+    --yellow: #F59E0B;
+    --red: #EF4444;
+    --purple: #8B5CF6;
+    --cyan: #06B6D4;
+    --text: #E8EEF8;
+    --text2: #8B9EC7;
+    --text3: #4A5E8A;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 48px rgba(0,0,0,0.6);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* ========== LAYOUT ========== */
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .page { display: none; flex-direction: column; min-height: 100vh; }
+  .page.active { display: flex; }
+
+  /* ========== LANDING ========== */
+  .landing {
+    background: linear-gradient(135deg, #080B14 0%, #0A0F1E 50%, #080B14 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .landing::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .landing::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .landing-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 48px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo span { color: var(--accent); }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hero {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 120px 48px 80px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  h1.hero-title {
+    font-size: clamp(42px, 7vw, 76px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    background: linear-gradient(180deg, #E8EEF8 0%, #8B9EC7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h1.hero-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: var(--text2);
+    max-width: 560px;
+    margin: 0 auto 48px;
+    font-weight: 400;
+    line-height: 1.7;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 80px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .feature-card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 64px;
+    padding: 40px 48px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 10;
+  }
+  .stat-item { text-align: center; }
+  .stat-num { font-size: 36px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+  .stat-label { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  /* ========== BUTTONS ========== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-decoration: none;
+    font-family: var(--sans);
+    white-space: nowrap;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 0 20px rgba(59,130,246,0.3);
+  }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 0 30px rgba(59,130,246,0.5); transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover:not(:disabled) { border-color: var(--border2); background: var(--surface3); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+  }
+  .btn-ghost:hover:not(:disabled) { color: var(--text); background: var(--surface2); }
+  .btn-lg { padding: 14px 28px; font-size: 15px; border-radius: 10px; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+  .btn-danger { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-success { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+  .btn-success:hover { background: rgba(16,185,129,0.2); }
+
+  /* ========== AUTH ========== */
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-lg);
+  }
+  .auth-card .logo { justify-content: center; margin-bottom: 8px; }
+  .auth-tagline { text-align: center; color: var(--text2); font-size: 13px; margin-bottom: 40px; }
+  .auth-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: var(--sans);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  .form-input::placeholder { color: var(--text3); }
+
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B9EC7' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+  .auth-divider span { font-size: 12px; color: var(--text3); }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .auth-switch { text-align: center; margin-top: 24px; font-size: 13px; color: var(--text2); }
+  .auth-switch a { color: var(--accent); cursor: pointer; text-decoration: none; font-weight: 500; }
+
+  .alert {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .alert.show { display: block; }
+  .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #FCA5A5; }
+  .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #6EE7B7; }
+
+  /* ========== APP LAYOUT ========== */
+  .app-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .user-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; truncate: ellipsis; overflow: hidden; white-space: nowrap; }
+  .user-level { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+  .sidebar-nav { padding: 12px 0; flex: 1; }
+  .nav-section { padding: 4px 12px 4px; }
+  .nav-section-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 8px 8px 4px; }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(59,130,246,0.12); color: var(--accent); font-weight: 600; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 100px;
+  }
+
+  .sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+    line-height: 1.5;
+    text-align: center;
+  }
+  .sidebar-footer a { color: var(--accent); text-decoration: none; }
+
+  .main-content {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .main-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .page-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .page-subtitle { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  .main-body { padding: 32px; flex: 1; }
+
+  /* ========== CARDS ========== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .card-sm { padding: 16px; }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  /* ========== DASHBOARD ========== */
+  .stat-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.blue::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .stat-card.green::before { background: linear-gradient(90deg, var(--green), #34D399); }
+  .stat-card.yellow::before { background: linear-gradient(90deg, var(--yellow), #FCD34D); }
+  .stat-card.purple::before { background: linear-gradient(90deg, var(--purple), #A78BFA); }
+
+  .stat-card-icon { font-size: 24px; margin-bottom: 12px; }
+  .stat-card-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+  .stat-card-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .stat-card-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 3px 7px;
+    border-radius: 100px;
+  }
+  .trend-up { background: rgba(16,185,129,0.1); color: var(--green); }
+  .trend-down { background: rgba(239,68,68,0.1); color: var(--red); }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* ========== CHART CONTAINERS ========== */
+  .chart-container { position: relative; }
+  canvas { max-width: 100%; }
+
+  /* ========== TIMER PAGE ========== */
+  .timer-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+  }
+
+  .timer-main {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .timer-mode-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 48px;
+  }
+  .mode-tab {
+    padding: 8px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text2);
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    font-family: var(--sans);
+  }
+  .mode-tab.active { background: var(--surface3); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+  .timer-ring-wrap {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    margin-bottom: 40px;
+  }
+
+  .timer-ring-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .timer-ring-bg { fill: none; stroke: var(--surface3); stroke-width: 6; }
+  .timer-ring-progress {
+    fill: none;
+    stroke: url(#timerGrad);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+
+  .timer-display {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .timer-time {
+    font-family: var(--mono);
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .timer-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .timer-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .timer-btn-main {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    box-shadow: 0 0 24px rgba(59,130,246,0.4);
+  }
+  .timer-btn-main:hover { transform: scale(1.05); box-shadow: 0 0 32px rgba(59,130,246,0.6); }
+  .timer-btn-sm {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    color: var(--text2);
+  }
+  .timer-btn-sm:hover { background: var(--surface3); color: var(--text); }
+
+  .timer-presets {
+    display: flex;
+    gap: 8px;
+  }
+  .preset-btn {
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-btn.active { background: rgba(59,130,246,0.12); border-color: var(--accent); color: var(--accent); }
+
+  .timer-sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .session-list { list-style: none; }
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .session-item:last-child { border-bottom: none; }
+  .session-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .session-info { flex: 1; min-width: 0; }
+  .session-name { font-size: 13px; font-weight: 500; }
+  .session-time { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .session-dur { font-size: 12px; font-weight: 600; font-family: var(--mono); color: var(--text2); }
+
+  /* ========== FOCUS SCORE ========== */
+  .score-ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .score-big {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ========== DISTRACTION MODAL ========== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.show .modal { transform: translateY(0); }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .modal-subtitle { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+
+  .distraction-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .distraction-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .distraction-btn .d-icon { font-size: 24px; }
+  .distraction-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.08); }
+  .distraction-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.12); }
+
+  /* ========== BADGES ========== */
+  .badges-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .badge-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .badge-card.unlocked {
+    border-color: rgba(245,158,11,0.3);
+    background: rgba(245,158,11,0.05);
+  }
+  .badge-icon { font-size: 28px; margin-bottom: 8px; }
+  .badge-name { font-size: 11px; font-weight: 600; color: var(--text2); }
+  .badge-card.unlocked .badge-name { color: var(--yellow); }
+  .badge-locked { opacity: 0.35; }
+
+  /* ========== LEVEL BAR ========== */
+  .level-bar-wrap { margin-top: 8px; }
+  .level-bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+  .level-bar {
+    height: 6px;
+    background: var(--surface3);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .level-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 100px;
+    transition: width 0.5s;
+  }
+
+  /* ========== AI REPORT ========== */
+  .ai-report {
+    background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(99,102,241,0.06));
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 100px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+  .ai-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(59,130,246,0.1);
+    font-size: 13px;
+  }
+  .ai-insight:last-child { border-bottom: none; }
+  .ai-insight-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .ai-insight strong { color: var(--text); }
+  .ai-insight span { color: var(--text2); }
+
+  /* ========== PROFILE / SETTINGS ========== */
+  .settings-section { margin-bottom: 32px; }
+  .settings-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { font-size: 14px; font-weight: 500; }
+  .setting-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    flex-shrink: 0;
+  }
+  .toggle input { display: none; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--surface3);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::after { transform: translateX(18px); }
+
+  /* ========== ANALYTICS ========== */
+  .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ========== HEATMAP ========== */
+  .heatmap {
+    display: flex;
+    gap: 4px;
+  }
+  .heatmap-col { display: flex; flex-direction: column; gap: 4px; }
+  .heatmap-cell {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    background: var(--surface3);
+  }
+  .heatmap-cell.l1 { background: rgba(59,130,246,0.2); }
+  .heatmap-cell.l2 { background: rgba(59,130,246,0.4); }
+  .heatmap-cell.l3 { background: rgba(59,130,246,0.65); }
+  .heatmap-cell.l4 { background: var(--accent); }
+
+  /* ========== TOAST ========== */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: toastIn 0.3s ease;
+    pointer-events: all;
+    max-width: 320px;
+  }
+  .toast.success { border-color: rgba(16,185,129,0.3); }
+  .toast.error { border-color: rgba(239,68,68,0.3); }
+  @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+  /* ========== EMPTY STATE ========== */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .empty-desc { font-size: 13px; color: var(--text2); max-width: 280px; }
+
+  /* ========== MISC ========== */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-muted { color: var(--text2); }
+  .text-accent { color: var(--accent); }
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+  .text-yellow { color: var(--yellow); }
+  .fw-600 { font-weight: 600; }
+  .fw-700 { font-weight: 700; }
+  .mt-4 { margin-top: 4px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-4 { margin-bottom: 4px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+  .flex { display: flex; }
+  .flex-center { display: flex; align-items: center; justify-content: center; }
+  .items-center { align-items: center; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .gap-16 { gap: 16px; }
+  .flex-1 { flex: 1; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-blue { background: rgba(59,130,246,0.12); color: var(--accent); }
+  .tag-green { background: rgba(16,185,129,0.12); color: var(--green); }
+  .tag-yellow { background: rgba(245,158,11,0.12); color: var(--yellow); }
+  .tag-red { background: rgba(239,68,68,0.12); color: var(--red); }
+  .tag-purple { background: rgba(139,92,246,0.12); color: var(--purple); }
+
+  footer.site-footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 20px 32px;
+    font-size: 12px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  footer.site-footer a { color: var(--accent); text-decoration: none; }
+
+  /* Timer running pulse */
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 24px rgba(59,130,246,0.4); }
+    50% { box-shadow: 0 0 40px rgba(59,130,246,0.7); }
+    100% { box-shadow: 0 0 24px rgba(59,130,246,0.4); }
+  }
+  .timer-running .timer-btn-main { animation: pulse-ring 2s infinite; }
+
+  /* Streak flame */
+  .streak-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .streak-flame { animation: flicker 1.5s infinite alternate; }
+  @keyframes flicker {
+    0% { transform: scale(1) rotate(-3deg); }
+    100% { transform: scale(1.1) rotate(3deg); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main-content { margin-left: 0; }
+    .stat-cards { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: 1fr; }
+    .timer-layout { grid-template-columns: 1fr; }
+  }
+
+  .landing-footer {
+    padding: 24px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text3);
+    position: relative;
+    z-index: 10;
+  }
+  .landing-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ========== PAGE: LANDING ========== -->
+<div id="page-landing" class="page active landing">
+  <nav class="landing-nav">
+    <div class="logo">
+      <div class="logo-icon">🌿</div>
+      Focus<span>OS</span>
+    </div>
+    <div class="nav-links">
+      <button class="btn btn-ghost btn-sm" onclick="showPage('page-login')">Sign in</button>
+      <button class="btn btn-primary btn-sm" onclick="showPage('page-signup')">Get Started Free</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-badge">🧠 AI-Powered Focus Intelligence</div>
+    <h1 class="hero-title">Train Your<br><em>Attention</em><br>Like a Muscle</h1>
+    <p class="hero-sub">FocusOS is not just a Pomodoro timer. It's a complete deep-work operating system with behavioral tracking, distraction analytics, and AI coaching.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-lg" onclick="showPage('page-signup')">Start Focusing Free →</button>
+      <button class="btn btn-secondary btn-lg" onclick="showPage('page-login')">Sign In</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-num">12,400+</div>
+      <div class="stat-label">Focus sessions logged</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">87%</div>
+      <div class="stat-label">Users report better focus</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">4.2h</div>
+      <div class="stat-label">Average daily deep work</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">340+</div>
+      <div class="stat-label">Distraction patterns identified</div>
+    </div>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(59,130,246,0.1)">⏱️</div>
+      <h3>Intelligent Focus Timer</h3>
+      <p>Pomodoro presets + custom sessions. Every session auto-saved with status tracking for complete history.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(239,68,68,0.1)">📊</div>
+      <h3>Distraction Analytics</h3>
+      <p>Log what broke your focus — social media, YouTube, phone. Visualize patterns and fight back with data.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.1)">🤖</div>
+      <h3>AI Weekly Reports</h3>
+      <p>Get personalized insights on your most productive hours, top distractions, and improvement paths.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.1)">🏆</div>
+      <h3>Streaks & Badges</h3>
+      <p>Gamified focus training with daily streaks, milestone badges, and level progression. Focus becomes a habit.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(139,92,246,0.1)">🎯</div>
+      <h3>Focus Score Engine</h3>
+      <p>A 0–100 score based on session quality, completions, streaks, and session length. Know your true focus level.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(6,182,212,0.1)">📅</div>
+      <h3>Activity Heatmap</h3>
+      <p>GitHub-style calendar showing your focus consistency. See patterns and identify your most productive days.</p>
+    </div>
+  </div>
+
+  <div class="landing-footer">
+    <div>© 2025 FocusOS — AI Attention & Deep Work OS</div>
+    <div>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></div>
+  </div>
+</div>
+
+<!-- ========== PAGE: LOGIN ========== -->
+<div id="page-login" class="page">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="logo">
+        <div class="logo-icon">🌿</div>
+        Focus<span>OS</span>
+      </div>
+      <p class="auth-tagline">AI Attention & Deep Work OS</p>
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-tagline" style="margin-bottom:24px">Enter your credentials to access your dashboard</p>
+
+      <div class="alert alert-error" id="login-error"></div>
+      <div class="alert alert-success" id="login-success"></div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="you@example.com" value="demo@focusos.app">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="login-pass" placeholder="••••••••" value="demo1234">
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px;padding:13px" onclick="handleLogin()" id="login-btn">Sign In →</button>
+
+      <div class="auth-divider"><span>or</span></div>
+      <button class="btn btn-secondary" style="width:100%;padding:13px" onclick="demoLogin()">🚀 Continue with Demo</button>
+
+      <div class="auth-switch">
+        Don't have an account? <a onclick="showPage('page-signup')">Create one free</a>
+      </div>
+      <div class="auth-switch" style="margin-top:8px">
+        <a onclick="showPage('page-landing')">← Back to home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE: SIGNUP ========== -->
+<div id="page-signup" class="page">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="logo">
+        <div class="logo-icon">🌿</div>
+        Focus<span>OS</span>
+      </div>
+      <p class="auth-tagline">AI Attention & Deep Work OS</p>
+      <h2 class="auth-title">Create your account</h2>
+      <p class="auth-tagline" style="margin-bottom:24px">Start training your attention in under 60 seconds</p>
+
+      <div class="alert alert-error" id="signup-error"></div>
+
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="signup-name" placeholder="Alex Johnson">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="signup-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="signup-pass" placeholder="Min 8 characters">
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px;padding:13px" onclick="handleSignup()">Create Account →</button>
+
+      <div class="auth-divider"><span>or</span></div>
+      <button class="btn btn-secondary" style="width:100%;padding:13px" onclick="demoLogin()">🚀 Try Demo (No signup)</button>
+
+      <div class="auth-switch">
+        Already have an account? <a onclick="showPage('page-login')">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== APP WRAPPER ========== -->
+<div id="page-app" class="page" style="padding:0;flex-direction:row">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" style="font-size:16px">
+        <div class="logo-icon" style="width:30px;height:30px;font-size:15px">🌿</div>
+        Focus<span>OS</span>
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sb-avatar">A</div>
+      <div class="user-info">
+        <div class="user-name" id="sb-name">Alex Johnson</div>
+        <div class="user-level" id="sb-level">Level 3 · Deep Diver</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <a class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard">
+          <span class="icon">📊</span> Dashboard
+        </a>
+        <a class="nav-item" onclick="switchTab('timer')" id="nav-timer">
+          <span class="icon">⏱️</span> Focus Timer
+        </a>
+        <a class="nav-item" onclick="switchTab('analytics')" id="nav-analytics">
+          <span class="icon">📈</span> Analytics
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Progress</div>
+        <a class="nav-item" onclick="switchTab('achievements')" id="nav-achievements">
+          <span class="icon">🏆</span> Achievements
+        </a>
+        <a class="nav-item" onclick="switchTab('report')" id="nav-report">
+          <span class="icon">🤖</span> AI Report
+          <span class="nav-badge">NEW</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <a class="nav-item" onclick="switchTab('profile')" id="nav-profile">
+          <span class="icon">👤</span> Profile
+        </a>
+        <a class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+          <span class="icon">⚙️</span> Settings
+        </a>
+        <a class="nav-item" onclick="handleLogout()" style="color:var(--text3)">
+          <span class="icon">🚪</span> Sign Out
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a><br>
+      <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn ↗</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- ===== TAB: DASHBOARD ===== -->
+    <div id="tab-dashboard" class="tab-content">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle" id="dash-date">Today, June 19, 2025</div>
+        </div>
+        <div class="header-actions">
+          <div class="flex items-center gap-8" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+            <span class="streak-flame">🔥</span>
+            <span id="dash-streak-num" style="font-size:15px;font-weight:700">5</span>
+            <span class="text-sm text-muted">day streak</span>
+          </div>
+          <button class="btn btn-primary" onclick="switchTab('timer')">Start Focus ⏱️</button>
+        </div>
+      </div>
+      <div class="main-body">
+        <!-- Stat Cards -->
+        <div class="stat-cards">
+          <div class="stat-card blue">
+            <div class="stat-card-icon">⏱️</div>
+            <div class="stat-card-value" id="stat-today">3h 20m</div>
+            <div class="stat-card-label">Focus time today</div>
+            <div class="stat-card-trend trend-up">↑ 12% vs yesterday</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-card-icon">✅</div>
+            <div class="stat-card-value" id="stat-sessions">8</div>
+            <div class="stat-card-label">Sessions today</div>
+            <div class="stat-card-trend trend-up">↑ 2 more than avg</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-card-icon">🎯</div>
+            <div class="stat-card-value" id="stat-score">78</div>
+            <div class="stat-card-label">Focus score</div>
+            <div class="stat-card-trend trend-up">↑ 5 pts this week</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-card-icon">⚡</div>
+            <div class="stat-card-value" id="stat-hours">24.5h</div>
+            <div class="stat-card-label">Total focus hours</div>
+            <div class="stat-card-trend trend-up">Level 3 achieved</div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="dashboard-grid mb-24">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Weekly Focus Hours</div>
+                <div class="card-subtitle">Deep work sessions this week</div>
+              </div>
+              <span class="tag tag-blue">This Week</span>
+            </div>
+            <div class="chart-container" style="height:200px">
+              <canvas id="weeklyChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Distraction Breakdown</div>
+                <div class="card-subtitle">What broke your focus</div>
+              </div>
+            </div>
+            <div class="chart-container" style="height:200px">
+              <canvas id="distractionChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap + Score -->
+        <div class="grid-2 mb-24">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Activity Heatmap</div>
+                <div class="card-subtitle">Last 12 weeks of focus activity</div>
+              </div>
+            </div>
+            <div class="heatmap" id="heatmap-container" style="flex-wrap:nowrap;overflow-x:auto;padding-bottom:8px"></div>
+            <div class="flex gap-8 items-center mt-16" style="font-size:11px;color:var(--text2)">
+              <span>Less</span>
+              <div style="width:12px;height:12px;border-radius:2px;background:var(--surface3)"></div>
+              <div style="width:12px;height:12px;border-radius:2px;background:rgba(59,130,246,0.2)"></div>
+              <div style="width:12px;height:12px;border-radius:2px;background:rgba(59,130,246,0.5)"></div>
+              <div style="width:12px;height:12px;border-radius:2px;background:var(--accent)"></div>
+              <span>More</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Focus Score</div>
+                <div class="card-subtitle">Your attention performance</div>
+              </div>
+            </div>
+            <div class="score-ring-wrap" style="padding:16px 0">
+              <div class="score-big" id="big-score">78</div>
+              <div class="text-muted text-sm mt-4">/ 100 · Good</div>
+              <div class="level-bar-wrap" style="width:100%;margin-top:20px">
+                <div class="level-bar-labels">
+                  <span>Score this week</span>
+                  <span style="color:var(--accent)">78 avg</span>
+                </div>
+                <div class="level-bar"><div class="level-bar-fill" style="width:78%"></div></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;width:100%">
+                <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:20px;font-weight:700;color:var(--green)">+80</div>
+                  <div style="font-size:11px;color:var(--text2)">Completed</div>
+                </div>
+                <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:20px;font-weight:700;color:var(--red)">-10</div>
+                  <div style="font-size:11px;color:var(--text2)">Interrupted</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recent Sessions</div>
+              <div class="card-subtitle">Today's focus history</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('analytics')">View all →</button>
+          </div>
+          <ul class="session-list" id="dashboard-sessions"></ul>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+    <!-- ===== TAB: TIMER ===== -->
+    <div id="tab-timer" class="tab-content" style="display:none">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Focus Timer</div>
+          <div class="page-subtitle">Deep work session control</div>
+        </div>
+        <div class="header-actions">
+          <span id="timer-status-badge" class="tag tag-blue">Ready</span>
+        </div>
+      </div>
+      <div class="main-body">
+        <div class="timer-layout">
+          <!-- Timer Main -->
+          <div class="timer-main" id="timer-main-card">
+            <div class="timer-mode-tabs">
+              <button class="mode-tab active" onclick="setTimerMode('focus')" id="mode-focus">Focus</button>
+              <button class="mode-tab" onclick="setTimerMode('short')" id="mode-short">Short Break</button>
+              <button class="mode-tab" onclick="setTimerMode('long')" id="mode-long">Long Break</button>
+            </div>
+
+            <div class="timer-ring-wrap">
+              <svg class="timer-ring-svg" viewBox="0 0 280 280">
+                <defs>
+                  <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#3B82F6"/>
+                    <stop offset="100%" style="stop-color:#6366F1"/>
+                  </linearGradient>
+                </defs>
+                <circle class="timer-ring-bg" cx="140" cy="140" r="128"/>
+                <circle class="timer-ring-progress" cx="140" cy="140" r="128" id="timer-ring"/>
+              </svg>
+              <div class="timer-display">
+                <div class="timer-time" id="timer-display">25:00</div>
+                <div class="timer-label" id="timer-mode-label">Focus Session</div>
+              </div>
+            </div>
+
+            <div class="timer-controls">
+              <button class="timer-btn-sm" onclick="resetTimer()" title="Reset">↺</button>
+              <button class="timer-btn-main" onclick="toggleTimer()" id="timer-play-btn">▶</button>
+              <button class="timer-btn-sm" onclick="stopTimer()" title="Stop & Save">⏹</button>
+            </div>
+
+            <div class="timer-presets">
+              <button class="preset-btn active" onclick="setPreset(25)" id="preset-25">25 min</button>
+              <button class="preset-btn" onclick="setPreset(45)" id="preset-45">45 min</button>
+              <button class="preset-btn" onclick="setPreset(60)" id="preset-60">60 min</button>
+              <button class="preset-btn" onclick="setCustomTimer()" id="preset-custom">Custom</button>
+            </div>
+
+            <div style="width:100%;margin-top:24px" id="custom-timer-wrap" style="display:none">
+              <div style="display:none" id="custom-input-wrap">
+                <label class="form-label">Custom duration (minutes)</label>
+                <div class="flex gap-8">
+                  <input type="number" class="form-input" id="custom-mins" placeholder="e.g. 90" min="1" max="240" style="flex:1">
+                  <button class="btn btn-primary" onclick="applyCustomTimer()">Set</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="width:100%;margin-top:20px">
+              <div class="form-group">
+                <label class="form-label">Session Label (optional)</label>
+                <input type="text" class="form-input" id="session-label" placeholder="What are you working on?">
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer Sidebar -->
+          <div class="timer-sidebar">
+            <!-- Today Stats -->
+            <div class="card">
+              <div class="card-title mb-16">Today's Progress</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:var(--accent)" id="t-sessions">8</div>
+                  <div class="text-xs text-muted mt-4">Sessions</div>
+                </div>
+                <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:var(--green)" id="t-focus-time">3h 20m</div>
+                  <div class="text-xs text-muted mt-4">Focus time</div>
+                </div>
+              </div>
+              <div style="margin-top:12px">
+                <div class="level-bar-labels">
+                  <span class="text-xs text-muted">Daily goal</span>
+                  <span class="text-xs" style="color:var(--accent)" id="t-goal-pct">67%</span>
+                </div>
+                <div class="level-bar" style="margin-top:6px"><div class="level-bar-fill" id="t-goal-bar" style="width:67%"></div></div>
+              </div>
+            </div>
+
+            <!-- Recent Sessions List -->
+            <div class="card" style="flex:1">
+              <div class="card-title mb-16">Recent Sessions</div>
+              <ul class="session-list" id="timer-sessions-list"></ul>
+              <div class="empty-state" id="timer-sessions-empty" style="display:none;padding:24px">
+                <div class="empty-icon">⏱️</div>
+                <div class="empty-title">No sessions yet</div>
+                <div class="empty-desc">Start your first focus session to build your history</div>
+              </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="ai-report">
+              <div class="ai-badge">💡 Focus Tip</div>
+              <div id="focus-tip" class="text-sm" style="color:var(--text2);line-height:1.6">
+                Your peak focus time is typically <strong style="color:var(--text)">8–10 PM</strong>. Schedule your hardest tasks then.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+    <!-- ===== TAB: ANALYTICS ===== -->
+    <div id="tab-analytics" class="tab-content" style="display:none">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Analytics</div>
+          <div class="page-subtitle">Deep dive into your focus patterns</div>
+        </div>
+        <div class="header-actions">
+          <select class="form-input form-select" style="width:140px;padding:8px 32px 8px 12px;font-size:13px" id="analytics-range">
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+        </div>
+      </div>
+      <div class="main-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Daily Focus Time</div>
+                <div class="card-subtitle">Hours of deep work per day</div>
+              </div>
+              <span class="tag tag-blue">Hours</span>
+            </div>
+            <div class="chart-container" style="height:200px">
+              <canvas id="dailyChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Session Distribution</div>
+                <div class="card-subtitle">By session length</div>
+              </div>
+            </div>
+            <div class="chart-container" style="height:200px">
+              <canvas id="durationChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Weekly Trend</div>
+                <div class="card-subtitle">Focus hours over time</div>
+              </div>
+            </div>
+            <div class="chart-container" style="height:200px">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Distraction Sources</div>
+                <div class="card-subtitle">What breaks your focus most</div>
+              </div>
+            </div>
+            <div class="chart-container" style="height:200px">
+              <canvas id="distractionChart2"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session Table -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">All Sessions</div>
+              <div class="card-subtitle">Complete focus history</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Session</th>
+                  <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Date & Time</th>
+                  <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Duration</th>
+                  <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Status</th>
+                  <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Distraction</th>
+                </tr>
+              </thead>
+              <tbody id="sessions-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+    <!-- ===== TAB: ACHIEVEMENTS ===== -->
+    <div id="tab-achievements" class="tab-content" style="display:none">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Achievements</div>
+          <div class="page-subtitle">Your focus milestones and progress</div>
+        </div>
+      </div>
+      <div class="main-body">
+        <!-- Level Card -->
+        <div class="card mb-24">
+          <div style="display:flex;align-items:center;gap:24px">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;flex-shrink:0" id="level-num-big">3</div>
+            <div style="flex:1">
+              <div style="font-size:22px;font-weight:800;margin-bottom:4px" id="level-title-big">Deep Diver</div>
+              <div class="text-sm text-muted mb-8">Total focus: <span id="total-hours-ach">24.5h</span> · <span id="sessions-ach">8 sessions</span></div>
+              <div class="level-bar-labels">
+                <span class="text-xs text-muted">Progress to Level 4</span>
+                <span class="text-xs text-accent" id="next-level-pct">49%</span>
+              </div>
+              <div class="level-bar mt-4"><div class="level-bar-fill" id="level-bar-fill" style="width:49%"></div></div>
+              <div class="text-xs text-muted mt-4">Need <span id="hours-to-next" style="color:var(--text)">25.5h</span> more for Level 4 (Ocean Drifter)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak Card -->
+        <div class="card mb-24">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="card-title mb-8">Focus Streak</div>
+              <div class="streak-display">
+                <span class="streak-flame">🔥</span>
+                <span id="streak-num-ach">5</span>
+                <span class="text-sm text-muted fw-600">days</span>
+              </div>
+              <div class="text-xs text-muted mt-8">Best streak: <span style="color:var(--yellow)">7 days</span></div>
+            </div>
+            <div style="text-align:right">
+              <div class="text-sm fw-600 mb-4">Week overview</div>
+              <div style="display:flex;gap:6px">
+                <div style="text-align:center;font-size:10px;color:var(--text2)" id="streak-days"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="card">
+          <div class="card-header mb-24">
+            <div>
+              <div class="card-title">Badges</div>
+              <div class="card-subtitle">Unlock milestones as you focus</div>
+            </div>
+            <span class="tag tag-yellow" id="badge-count">3 / 8 unlocked</span>
+          </div>
+          <div class="badges-grid" id="badges-container"></div>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+    <!-- ===== TAB: AI REPORT ===== -->
+    <div id="tab-report" class="tab-content" style="display:none">
+      <div class="main-header">
+        <div>
+          <div class="page-title">AI Weekly Report</div>
+          <div class="page-subtitle">Personalized focus intelligence</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary btn-sm" onclick="generateReport()">🔄 Regenerate</button>
+        </div>
+      </div>
+      <div class="main-body">
+        <div class="ai-report mb-24">
+          <div class="ai-badge">🤖 AI Focus Coach · Weekly Analysis</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 24px">
+            <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--accent)" id="r-total-h">24.5h</div>
+              <div class="text-xs text-muted mt-4">Total focus hours</div>
+            </div>
+            <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--green)" id="r-sessions">8</div>
+              <div class="text-xs text-muted mt-4">Sessions this week</div>
+            </div>
+            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--yellow)" id="r-avg-dur">38m</div>
+              <div class="text-xs text-muted mt-4">Avg session length</div>
+            </div>
+            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--purple)" id="r-score">78</div>
+              <div class="text-xs text-muted mt-4">Focus score</div>
+            </div>
+          </div>
+          <div id="ai-insights-list"></div>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Improvement Suggestions</div>
+              <div class="card-subtitle">AI-generated recommendations</div>
+            </div>
+          </div>
+          <div id="suggestions-list"></div>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+    <!-- ===== TAB: PROFILE ===== -->
+    <div id="tab-profile" class="tab-content" style="display:none">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Profile</div>
+          <div class="page-subtitle">Your focus identity</div>
+        </div>
+      </div>
+      <div class="main-body">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px">
+          <div>
+            <div class="card" style="text-align:center;padding:32px 24px">
+              <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 16px" id="profile-avatar">A</div>
+              <div style="font-size:18px;font-weight:700;margin-bottom:4px" id="profile-name">Alex Johnson</div>
+              <div style="font-size:13px;color:var(--text2);margin-bottom:4px" id="profile-email">alex@example.com</div>
+              <span class="tag tag-blue" id="profile-level-tag">Level 3 · Deep Diver</span>
+              <div class="divider"></div>
+              <div class="streak-display" style="justify-content:center">
+                <span class="streak-flame">🔥</span>
+                <span id="profile-streak">5</span>
+                <span class="text-sm text-muted fw-600">day streak</span>
+              </div>
+              <div class="text-xs text-muted mt-8">Member since June 2025</div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb-16">
+              <div class="settings-title">Personal Information</div>
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="profile-name-input" value="Alex Johnson">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="profile-email-input" value="alex@example.com" disabled style="opacity:0.6">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Daily Focus Goal (hours)</label>
+                <input type="number" class="form-input" id="profile-goal" value="5" min="1" max="12">
+              </div>
+              <button class="btn btn-primary mt-8" onclick="saveProfile()">Save Changes</button>
+            </div>
+
+            <div class="card">
+              <div class="settings-title">Focus Statistics</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:var(--accent)" id="ps-hours">24.5h</div>
+                  <div class="text-xs text-muted mt-4">Total hours</div>
+                </div>
+                <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:var(--green)" id="ps-sessions">8</div>
+                  <div class="text-xs text-muted mt-4">Sessions</div>
+                </div>
+                <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:var(--yellow)">78</div>
+                  <div class="text-xs text-muted mt-4">Focus score</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+    <!-- ===== TAB: SETTINGS ===== -->
+    <div id="tab-settings" class="tab-content" style="display:none">
+      <div class="main-header">
+        <div>
+          <div class="page-title">Settings</div>
+          <div class="page-subtitle">Customize your FocusOS experience</div>
+        </div>
+      </div>
+      <div class="main-body" style="max-width:700px">
+        <div class="card mb-16">
+          <div class="settings-title">Timer Preferences</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Default session duration</div>
+              <div class="setting-desc">Minutes for each focus session</div>
+            </div>
+            <select class="form-input form-select" style="width:100px" id="setting-duration">
+              <option value="25" selected>25 min</option>
+              <option value="45">45 min</option>
+              <option value="60">60 min</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Short break duration</div>
+              <div class="setting-desc">Break between sessions</div>
+            </div>
+            <select class="form-input form-select" style="width:100px" id="setting-break">
+              <option value="5" selected>5 min</option>
+              <option value="10">10 min</option>
+              <option value="15">15 min</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Auto-start breaks</div>
+              <div class="setting-desc">Automatically begin break after session ends</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked id="setting-autobreak"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Sound notifications</div>
+              <div class="setting-desc">Play sound when session ends</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked id="setting-sound"><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="settings-title">Notifications & Tracking</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Daily reminder</div>
+              <div class="setting-desc">Get reminded to start your focus session</div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="setting-reminder"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Distraction logging</div>
+              <div class="setting-desc">Ask what distracted you after each session</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked id="setting-distraction"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Weekly AI report</div>
+              <div class="setting-desc">Get AI-generated weekly summary</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked id="setting-ai-report"><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="settings-title">Daily Goal</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Target focus hours per day</div>
+              <div class="setting-desc">Used for progress tracking on dashboard</div>
+            </div>
+            <div class="flex items-center gap-8">
+              <input type="number" class="form-input" id="setting-goal" value="5" min="1" max="12" style="width:70px;text-align:center">
+              <span class="text-sm text-muted">hours</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="settings-title">Danger Zone</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Reset all data</div>
+              <div class="setting-desc">Delete all sessions, achievements, and history</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="resetAllData()">Reset Data</button>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Sign out</div>
+              <div class="setting-desc">Log out of your FocusOS account</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Sign Out</button>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <span>FocusOS · AI Attention & Deep Work OS</span>
+        <span>Developed by <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">Taha Tahir</a> · <a href="https://www.linkedin.com/in/tahatahirpro/" target="_blank">LinkedIn</a></span>
+      </footer>
+    </div>
+
+  </div><!-- end main-content -->
+</div><!-- end page-app -->
+
+</div><!-- end #app -->
+
+<!-- ========== DISTRACTION MODAL ========== -->
+<div class="modal-overlay" id="distraction-modal">
+  <div class="modal">
+    <div class="modal-title">What distracted you? 🙈</div>
+    <div class="modal-subtitle" id="modal-session-info">Session ended · Help us learn your patterns</div>
+    <div class="distraction-grid">
+      <button class="distraction-btn" onclick="selectDistraction('Social Media')">
+        <span class="d-icon">📱</span>Social Media
+      </button>
+      <button class="distraction-btn" onclick="selectDistraction('YouTube')">
+        <span class="d-icon">🎥</span>YouTube
+      </button>
+      <button class="distraction-btn" onclick="selectDistraction('WhatsApp')">
+        <span class="d-icon">💬</span>WhatsApp
+      </button>
+      <button class="distraction-btn" onclick="selectDistraction('Gaming')">
+        <span class="d-icon">🎮</span>Gaming
+      </button>
+      <button class="distraction-btn" onclick="selectDistraction('Phone')">
+        <span class="d-icon">📞</span>Phone
+      </button>
+      <button class="distraction-btn" onclick="selectDistraction('Other')">
+        <span class="d-icon">💭</span>Other
+      </button>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-ghost flex-1" onclick="closeDistractionModal(false)">No distraction</button>
+      <button class="btn btn-primary flex-1" onclick="closeDistractionModal(true)" id="confirm-distraction-btn" disabled>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TOAST CONTAINER ========== -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ============================================================
+// STATE MANAGEMENT
+// ============================================================
+let APP = {
+  user: null,
+  sessions: [],
+  distractions: [],
+  settings: { duration: 25, breakDuration: 5, goal: 5, sound: true, autoBreak: true, distractionLogging: true },
+  charts: {},
+  selectedDistraction: null,
+  pendingSessionData: null
+};
+
+const LEVELS = [
+  { level: 1, title: 'Beginner', minHours: 0, maxHours: 5 },
+  { level: 2, title: 'Focused', minHours: 5, maxHours: 20 },
+  { level: 3, title: 'Deep Diver', minHours: 20, maxHours: 50 },
+  { level: 4, title: 'Ocean Drifter', minHours: 50, maxHours: 100 },
+  { level: 5, title: 'Flow State', minHours: 100, maxHours: 200 },
+  { level: 6, title: 'Zen Master', minHours: 200, maxHours: 500 },
+  { level: 7, title: 'FocusOS Elite', minHours: 500, maxHours: Infinity }
+];
+
+const BADGES = [
+  { id: 'first_session', icon: '⚡', name: 'First Session', desc: 'Complete your first focus session', condition: s => s.length >= 1 },
+  { id: 'first_hour', icon: '⏰', name: 'First Hour', desc: 'Accumulate 1 hour of focus', condition: (s, h) => h >= 1 },
+  { id: 'five_day_streak', icon: '🔥', name: '5 Day Streak', desc: 'Maintain focus for 5 days', condition: (s,h,str) => str >= 5 },
+  { id: 'ten_hours', icon: '🎯', name: '10 Hour Milestone', desc: 'Reach 10 total hours of focus', condition: (s, h) => h >= 10 },
+  { id: 'deep_work', icon: '🧠', name: 'Deep Work Master', desc: 'Complete a 60-minute session', condition: s => s.some(x => x.duration >= 60 && x.status === 'completed') },
+  { id: 'perfect_day', icon: '✨', name: 'Perfect Day', desc: 'Complete 4+ sessions in one day', condition: s => { const today = new Date().toDateString(); return s.filter(x => new Date(x.start_time).toDateString() === today).length >= 4; } },
+  { id: 'no_distraction', icon: '🛡️', name: 'Distraction Free', desc: 'Complete 3 sessions without distractions', condition: s => { const clean = s.filter(x => x.status === 'completed' && !x.distraction); return clean.length >= 3; } },
+  { id: 'fifty_hours', icon: '👑', name: 'Focus Royalty', desc: 'Reach 50 total hours of focus', condition: (s, h) => h >= 50 }
+];
+
+const FOCUS_TIPS = [
+  'Your peak focus time is typically <strong style="color:var(--text)">8–10 PM</strong>. Schedule your hardest tasks then.',
+  'Put your phone in another room to reduce distraction by <strong style="color:var(--text)">75%</strong>.',
+  'Try the <strong style="color:var(--text)">2-minute rule</strong>: if it takes less than 2 minutes, do it now.',
+  'Deep work before checking email. Your morning attention is your most valuable resource.',
+  'Turn off all notifications during focus sessions for maximum concentration.',
+  'Cold water on your face can reset your attention after mental fatigue.',
+  'Pair your focus sessions with the same music or ambience to create a Pavlovian focus trigger.'
+];
+
+// ============================================================
+// LOCAL STORAGE (Supabase simulation)
+// ============================================================
+function saveState() {
+  localStorage.setItem('focusos_user', JSON.stringify(APP.user));
+  localStorage.setItem('focusos_sessions', JSON.stringify(APP.sessions));
+  localStorage.setItem('focusos_distractions', JSON.stringify(APP.distractions));
+  localStorage.setItem('focusos_settings', JSON.stringify(APP.settings));
+}
+
+function loadState() {
+  try {
+    const user = localStorage.getItem('focusos_user');
+    const sessions = localStorage.getItem('focusos_sessions');
+    const distractions = localStorage.getItem('focusos_distractions');
+    const settings = localStorage.getItem('focusos_settings');
+    if (user) APP.user = JSON.parse(user);
+    if (sessions) APP.sessions = JSON.parse(sessions);
+    if (distractions) APP.distractions = JSON.parse(distractions);
+    if (settings) APP.settings = { ...APP.settings, ...JSON.parse(settings) };
+  } catch(e) {}
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = 'flex';
+  document.getElementById('tab-' + tab).style.flexDirection = 'column';
+  document.getElementById('tab-' + tab).style.minHeight = '100vh';
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + tab);
+  if (navEl) navEl.classList.add('active');
+
+  // Lazy init charts
+  if (tab === 'dashboard') initDashboardCharts();
+  if (tab === 'analytics') initAnalyticsCharts();
+  if (tab === 'achievements') renderAchievements();
+  if (tab === 'report') generateReport();
+  if (tab === 'profile') renderProfile();
+  if (tab === 'settings') loadSettingsUI();
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  err.classList.remove('show');
+
+  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; err.classList.add('show'); return; }
+
+  const stored = localStorage.getItem('focusos_users_' + email);
+  if (!stored) {
+    // Allow demo credentials
+    if (email === 'demo@focusos.app' && pass === 'demo1234') {
+      loginAs({ email, name: 'Demo User', id: 'demo' });
+    } else {
+      err.textContent = 'Account not found. Please sign up first.'; err.classList.add('show');
+    }
+    return;
+  }
+  const userData = JSON.parse(stored);
+  if (userData.pass !== pass) { err.textContent = 'Incorrect password.'; err.classList.add('show'); return; }
+  loginAs(userData);
+}
+
+function handleSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass').value;
+  const err = document.getElementById('signup-error');
+  err.classList.remove('show');
+
+  if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; err.classList.add('show'); return; }
+  if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters.'; err.classList.add('show'); return; }
+  if (!email.includes('@')) { err.textContent = 'Please enter a valid email.'; err.classList.add('show'); return; }
+
+  const userData = { name, email, pass, id: Date.now().toString() };
+  localStorage.setItem('focusos_users_' + email, JSON.stringify(userData));
+  loginAs(userData);
+}
+
+function demoLogin() {
+  loginAs({ email: 'demo@focusos.app', name: 'Demo User', id: 'demo' });
+  // Seed demo data if no sessions
+  if (APP.sessions.length === 0) seedDemoData();
+}
+
+function loginAs(userData) {
+  APP.user = userData;
+  loadState();
+  if (APP.sessions.length === 0) seedDemoData();
+  saveState();
+  updateSidebarUser();
+  showPage('page-app');
+  switchTab('dashboard');
+  toast('Welcome back, ' + userData.name.split(' ')[0] + '! 👋', 'success');
+}
+
+function handleLogout() {
+  APP.user = null;
+  timerStop();
+  showPage('page-landing');
+  toast('Signed out. See you soon!', 'success');
+}
+
+function seedDemoData() {
+  const now = new Date();
+  const sessions = [];
+  const distractions = ['Social Media', 'YouTube', 'WhatsApp', 'Phone', 'Gaming', null, null, null];
+  
+  // Generate 14 days of sessions
+  for (let d = 13; d >= 0; d--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - d);
+    const numSessions = d === 0 ? 8 : (Math.floor(Math.random() * 5) + 1);
+    for (let i = 0; i < numSessions; i++) {
+      const start = new Date(date);
+      start.setHours(8 + Math.floor(Math.random() * 14));
+      start.setMinutes(Math.floor(Math.random() * 60));
+      const duration = [25, 25, 45, 60, 30, 45][Math.floor(Math.random() * 6)];
+      const status = Math.random() > 0.2 ? 'completed' : 'interrupted';
+      const distraction = status === 'interrupted' ? distractions[Math.floor(Math.random() * distractions.length)] : null;
+      const end = new Date(start);
+      end.setMinutes(end.getMinutes() + duration);
+      sessions.push({
+        id: Date.now() + '-' + Math.random(),
+        user_id: APP.user.id,
+        label: ['Deep Work', 'Study Session', 'Project Work', 'Research', 'Writing', 'Coding'][Math.floor(Math.random() * 6)],
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        duration,
+        status,
+        distraction
+      });
+    }
+  }
+  APP.sessions = sessions;
+  APP.distractions = sessions.filter(s => s.distraction).map(s => ({
+    id: s.id + '-d',
+    session_id: s.id,
+    user_id: s.user_id,
+    type: s.distraction,
+    created_at: s.end_time
+  }));
+  saveState();
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let timerState = {
+  running: false,
+  paused: false,
+  mode: 'focus',
+  totalSeconds: 25 * 60,
+  remainingSeconds: 25 * 60,
+  interval: null,
+  sessionStart: null,
+  preset: 25,
+  customActive: false
+};
+
+const circumference = 2 * Math.PI * 128;
+document.getElementById('timer-ring').style.strokeDasharray = circumference;
+document.getElementById('timer-ring').style.strokeDashoffset = 0;
+
+function setTimerMode(mode) {
+  timerState.mode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('mode-' + mode).classList.add('active');
+  
+  const durations = { focus: APP.settings.duration * 60, short: APP.settings.breakDuration * 60, long: 15 * 60 };
+  if (mode !== 'focus') {
+    timerState.totalSeconds = durations[mode];
+    timerState.remainingSeconds = durations[mode];
+    timerState.preset = durations[mode] / 60;
+  }
+  document.getElementById('timer-mode-label').textContent = mode === 'focus' ? 'Focus Session' : mode === 'short' ? 'Short Break' : 'Long Break';
+  
+  if (!timerState.running) resetTimer();
+  updateTimerDisplay();
+}
+
+function setPreset(mins) {
+  timerStop(true);
+  timerState.preset = mins;
+  timerState.totalSeconds = mins * 60;
+  timerState.remainingSeconds = mins * 60;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('preset-' + mins);
+  if (btn) btn.classList.add('active');
+  document.getElementById('custom-input-wrap') && (document.getElementById('custom-input-wrap').style.display = 'none');
+  updateTimerDisplay();
+  updateTimerRing();
+}
+
+function setCustomTimer() {
+  const wrap = document.getElementById('custom-input-wrap');
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('preset-custom').classList.add('active');
+}
+
+function applyCustomTimer() {
+  const mins = parseInt(document.getElementById('custom-mins').value);
+  if (!mins || mins < 1) { toast('Enter a valid duration (1–240 min)', 'error'); return; }
+  timerStop(true);
+  timerState.preset = mins;
+  timerState.totalSeconds = mins * 60;
+  timerState.remainingSeconds = mins * 60;
+  document.getElementById('custom-input-wrap').style.display = 'none';
+  updateTimerDisplay();
+  updateTimerRing();
+  toast('Timer set to ' + mins + ' minutes', 'success');
+}
+
+function toggleTimer() {
+  if (timerState.running) {
+    pauseTimer();
+  } else {
+    startTimer();
+  }
+}
+
+function startTimer() {
+  if (!timerState.sessionStart) timerState.sessionStart = new Date();
+  timerState.running = true;
+  timerState.paused = false;
+  document.getElementById('timer-play-btn').textContent = '⏸';
+  document.getElementById('timer-main-card').classList.add('timer-running');
+  document.getElementById('timer-status-badge').textContent = 'Running';
+  document.getElementById('timer-status-badge').className = 'tag tag-green';
+  
+  timerState.interval = setInterval(() => {
+    timerState.remainingSeconds--;
+    if (timerState.remainingSeconds <= 0) {
+      timerState.remainingSeconds = 0;
+      completeTimer();
+    }
+    updateTimerDisplay();
+    updateTimerRing();
+  }, 1000);
+}
+
+function pauseTimer() {
+  timerState.running = false;
+  timerState.paused = true;
+  clearInterval(timerState.interval);
+  document.getElementById('timer-play-btn').textContent = '▶';
+  document.getElementById('timer-main-card').classList.remove('timer-running');
+  document.getElementById('timer-status-badge').textContent = 'Paused';
+  document.getElementById('timer-status-badge').className = 'tag tag-yellow';
+}
+
+function stopTimer() {
+  if (!timerState.sessionStart) { toast('No active session to stop', 'error'); return; }
+  const elapsed = Math.floor((new Date() - timerState.sessionStart) / 1000 / 60);
+  if (elapsed < 1) { resetTimer(); toast('Session too short (< 1 min)', 'error'); return; }
+  
+  timerState.running = false;
+  clearInterval(timerState.interval);
+  
+  APP.pendingSessionData = {
+    start_time: timerState.sessionStart.toISOString(),
+    duration: elapsed,
+    status: 'interrupted'
+  };
+  
+  if (APP.settings.distractionLogging) {
+    showDistractionModal(elapsed);
+  } else {
+    saveSession(APP.pendingSessionData);
+    resetTimer();
+  }
+}
+
+function completeTimer() {
+  clearInterval(timerState.interval);
+  timerState.running = false;
+  document.getElementById('timer-main-card').classList.remove('timer-running');
+  
+  const duration = timerState.preset;
+  APP.pendingSessionData = {
+    start_time: timerState.sessionStart.toISOString(),
+    duration,
+    status: 'completed'
+  };
+  
+  toast('🎉 Session complete! Amazing focus!', 'success');
+  playCompletionSound();
+  
+  if (APP.settings.distractionLogging) {
+    showDistractionModal(duration);
+  } else {
+    saveSession(APP.pendingSessionData);
+    resetTimer();
+  }
+}
+
+function timerStop(silent = false) {
+  clearInterval(timerState.interval);
+  timerState.running = false;
+  timerState.paused = false;
+  timerState.sessionStart = null;
+  document.getElementById('timer-main-card').classList.remove('timer-running');
+  document.getElementById('timer-play-btn').textContent = '▶';
+  document.getElementById('timer-status-badge').textContent = 'Ready';
+  document.getElementById('timer-status-badge').className = 'tag tag-blue';
+}
+
+function resetTimer() {
+  timerStop();
+  timerState.remainingSeconds = timerState.totalSeconds;
+  updateTimerDisplay();
+  updateTimerRing();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerState.remainingSeconds / 60).toString().padStart(2, '0');
+  const s = (timerState.remainingSeconds % 60).toString().padStart(2, '0');
+  document.getElementById('timer-display').textContent = m + ':' + s;
+}
+
+function updateTimerRing() {
+  const progress = timerState.remainingSeconds / timerState.totalSeconds;
+  const offset = circumference * (1 - progress);
+  document.getElementById('timer-ring').style.strokeDashoffset = offset;
+}
+
+function playCompletionSound() {
+  if (!APP.settings.sound) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523, 659, 784].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.4);
+      osc.start(ctx.currentTime + i * 0.15);
+      osc.stop(ctx.currentTime + i * 0.15 + 0.4);
+    });
+  } catch(e) {}
+}
+
+function saveSession(data) {
+  const label = document.getElementById('session-label').value.trim() || 'Focus Session';
+  const session = {
+    id: Date.now() + '-' + Math.random(),
+    user_id: APP.user ? APP.user.id : 'demo',
+    label,
+    start_time: data.start_time,
+    end_time: new Date().toISOString(),
+    duration: data.duration,
+    status: data.status,
+    distraction: data.distraction || null
+  };
+  APP.sessions.unshift(session);
+  if (data.distraction) {
+    APP.distractions.push({ id: session.id + '-d', session_id: session.id, type: data.distraction, created_at: session.end_time });
+  }
+  saveState();
+  updateDashboardStats();
+  renderTimerSessions();
+  checkBadges();
+  
+  const pts = session.status === 'completed' ? 10 : -5;
+  toast((session.status === 'completed' ? '✅' : '⚠️') + ' ' + data.duration + ' min session saved · ' + (pts > 0 ? '+' : '') + pts + ' focus points', session.status === 'completed' ? 'success' : 'error');
+}
+
+// ============================================================
+// DISTRACTION MODAL
+// ============================================================
+function showDistractionModal(duration) {
+  APP.selectedDistraction = null;
+  document.querySelectorAll('.distraction-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('confirm-distraction-btn').disabled = true;
+  document.getElementById('modal-session-info').textContent = duration + ' min session ended · What distracted you?';
+  document.getElementById('distraction-modal').classList.add('show');
+}
+
+function selectDistraction(type) {
+  APP.selectedDistraction = type;
+  document.querySelectorAll('.distraction-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('confirm-distraction-btn').disabled = false;
+}
+
+function closeDistractionModal(withDistraction) {
+  document.getElementById('distraction-modal').classList.remove('show');
+  if (APP.pendingSessionData) {
+    APP.pendingSessionData.distraction = withDistraction ? APP.selectedDistraction : null;
+    saveSession(APP.pendingSessionData);
+    APP.pendingSessionData = null;
+  }
+  resetTimer();
+}
+
+// ============================================================
+// FOCUS SCORE
+// ============================================================
+function computeFocusScore() {
+  const today = new Date().toDateString();
+  const todaySessions = APP.sessions.filter(s => new Date(s.start_time).toDateString() === today);
+  let score = 50; // base
+  todaySessions.forEach(s => {
+    if (s.status === 'completed') {
+      score += 10;
+      if (s.duration >= 45) score += 5;
+      if (s.duration >= 60) score += 5;
+    } else {
+      score -= 5;
+    }
+  });
+  // Streak bonus
+  score += Math.min(getStreak() * 2, 20);
+  return Math.max(0, Math.min(100, score));
+}
+
+function getStreak() {
+  if (!APP.sessions.length) return 0;
+  const dates = [...new Set(APP.sessions.map(s => new Date(s.start_time).toDateString()))];
+  let streak = 0;
+  let checkDate = new Date();
+  for (let i = 0; i < 30; i++) {
+    if (dates.includes(checkDate.toDateString())) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
+
+function getTotalHours() {
+  const mins = APP.sessions.filter(s => s.status === 'completed').reduce((a, s) => a + s.duration, 0);
+  return mins / 60;
+}
+
+function getLevel(hours) {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (hours >= LEVELS[i].minHours) return LEVELS[i];
+  }
+  return LEVELS[0];
+}
+
+function getTodayMinutes() {
+  const today = new Date().toDateString();
+  return APP.sessions.filter(s => new Date(s.start_time).toDateString() === today && s.status === 'completed')
+    .reduce((a, s) => a + s.duration, 0);
+}
+
+function formatDuration(mins) {
+  if (mins < 60) return mins + 'm';
+  return Math.floor(mins / 60) + 'h ' + (mins % 60 > 0 ? (mins % 60) + 'm' : '');
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function updateDashboardStats() {
+  const todayMins = getTodayMinutes();
+  const todaySessions = APP.sessions.filter(s => new Date(s.start_time).toDateString() === new Date().toDateString()).length;
+  const score = computeFocusScore();
+  const hours = getTotalHours();
+  const streak = getStreak();
+
+  document.getElementById('stat-today').textContent = formatDuration(todayMins);
+  document.getElementById('stat-sessions').textContent = todaySessions;
+  document.getElementById('stat-score').textContent = score;
+  document.getElementById('stat-hours').textContent = hours.toFixed(1) + 'h';
+  document.getElementById('dash-streak-num').textContent = streak;
+  document.getElementById('big-score').textContent = score;
+
+  // Timer sidebar
+  document.getElementById('t-sessions').textContent = todaySessions;
+  document.getElementById('t-focus-time').textContent = formatDuration(todayMins);
+  const goalPct = Math.min(100, Math.round((todayMins / 60) / APP.settings.goal * 100));
+  document.getElementById('t-goal-pct').textContent = goalPct + '%';
+  document.getElementById('t-goal-bar').style.width = goalPct + '%';
+
+  renderDashboardSessions();
+  renderTimerSessions();
+  
+  // Update sidebar user
+  const level = getLevel(hours);
+  document.getElementById('sb-level').textContent = 'Level ' + level.level + ' · ' + level.title;
+}
+
+function renderDashboardSessions() {
+  const el = document.getElementById('dashboard-sessions');
+  const recent = APP.sessions.slice(0, 6);
+  if (!recent.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">⏱️</div><div class="empty-title">No sessions yet</div><div class="empty-desc">Start your first focus session</div></div>'; return; }
+  el.innerHTML = recent.map(s => sessionItemHTML(s)).join('');
+}
+
+function renderTimerSessions() {
+  const el = document.getElementById('timer-sessions-list');
+  const empty = document.getElementById('timer-sessions-empty');
+  const recent = APP.sessions.slice(0, 5);
+  if (!recent.length) { el.innerHTML = ''; empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+  el.innerHTML = recent.map(s => sessionItemHTML(s)).join('');
+}
+
+function sessionItemHTML(s) {
+  const color = s.status === 'completed' ? 'var(--green)' : 'var(--red)';
+  const time = new Date(s.start_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  return `<li class="session-item">
+    <div class="session-dot" style="background:${color}"></div>
+    <div class="session-info">
+      <div class="session-name">${s.label || 'Focus Session'}</div>
+      <div class="session-time">${time}${s.distraction ? ' · ' + s.distraction : ''}</div>
+    </div>
+    <div class="session-dur">${s.duration}m</div>
+  </li>`;
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+const CHART_DEFAULTS = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: 'rgba(30,42,69,0.8)', drawBorder: false }, ticks: { color: '#4A5E8A', font: { size: 11 } } },
+    y: { grid: { color: 'rgba(30,42,69,0.8)', drawBorder: false }, ticks: { color: '#4A5E8A', font: { size: 11 } } }
+  },
+  responsive: true, maintainAspectRatio: false
+};
+
+function getWeeklyData() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const data = [0,0,0,0,0,0,0];
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  
+  APP.sessions.filter(s => s.status === 'completed').forEach(s => {
+    const d = new Date(s.start_time);
+    const diff = Math.floor((d - weekStart) / 86400000);
+    if (diff >= 0 && diff < 7) data[diff] += s.duration / 60;
+  });
+  return { labels: days, data: data.map(v => +v.toFixed(2)) };
+}
+
+function getDistractionData() {
+  const types = {};
+  APP.distractions.forEach(d => { types[d.type] = (types[d.type] || 0) + 1; });
+  const sorted = Object.entries(types).sort((a,b) => b[1]-a[1]);
+  return { labels: sorted.map(x => x[0]), data: sorted.map(x => x[1]) };
+}
+
+function initDashboardCharts() {
+  const weekly = getWeeklyData();
+  const distract = getDistractionData();
+
+  destroyChart('weeklyChart');
+  APP.charts.weekly = new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+      labels: weekly.labels,
+      datasets: [{ data: weekly.data, backgroundColor: 'rgba(59,130,246,0.6)', borderColor: '#3B82F6', borderWidth: 2, borderRadius: 6 }]
+    },
+    options: { ...CHART_DEFAULTS, plugins: { legend: { display: false } } }
+  });
+
+  if (distract.labels.length) {
+    destroyChart('distractionChart');
+    APP.charts.distraction = new Chart(document.getElementById('distractionChart'), {
+      type: 'doughnut',
+      data: {
+        labels: distract.labels,
+        datasets: [{ data: distract.data, backgroundColor: ['#EF4444','#F59E0B','#10B981','#3B82F6','#8B5CF6','#06B6D4'], borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'right', labels: { color: '#8B9EC7', font: { size: 11 }, boxWidth: 10 } } }
+      }
+    });
+  } else {
+    document.getElementById('distractionChart').parentElement.innerHTML = '<div class="empty-state" style="padding:24px"><div class="empty-icon">🛡️</div><div class="empty-title">No distractions logged</div></div>';
+  }
+}
+
+function initAnalyticsCharts() {
+  // Daily chart (last 14 days)
+  const labels = [], data = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('en', {month:'short',day:'numeric'}));
+    const mins = APP.sessions.filter(s => s.status === 'completed' && new Date(s.start_time).toDateString() === d.toDateString()).reduce((a,s) => a + s.duration, 0);
+    data.push(+(mins/60).toFixed(2));
+  }
+
+  destroyChart('dailyChart');
+  APP.charts.daily = new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: 'rgba(59,130,246,0.5)', borderColor: '#3B82F6', borderWidth: 2, borderRadius: 4 }] },
+    options: { ...CHART_DEFAULTS }
+  });
+
+  // Duration distribution
+  const dur25 = APP.sessions.filter(s => s.duration <= 25).length;
+  const dur45 = APP.sessions.filter(s => s.duration > 25 && s.duration <= 45).length;
+  const dur60 = APP.sessions.filter(s => s.duration > 45 && s.duration <= 60).length;
+  const dur90 = APP.sessions.filter(s => s.duration > 60).length;
+
+  destroyChart('durationChart');
+  APP.charts.duration = new Chart(document.getElementById('durationChart'), {
+    type: 'bar',
+    data: {
+      labels: ['≤25 min','26-45 min','46-60 min','>60 min'],
+      datasets: [{ data: [dur25, dur45, dur60, dur90], backgroundColor: ['#3B82F6','#6366F1','#8B5CF6','#A78BFA'], borderWidth: 0, borderRadius: 6 }]
+    },
+    options: { ...CHART_DEFAULTS }
+  });
+
+  // Trend (weekly)
+  const weekLabels = [], weekData = [];
+  for (let w = 3; w >= 0; w--) {
+    const start = new Date(); start.setDate(start.getDate() - w * 7);
+    const end = new Date(start); end.setDate(end.getDate() + 7);
+    weekLabels.push('Week ' + (4 - w));
+    const mins = APP.sessions.filter(s => s.status === 'completed' && new Date(s.start_time) >= start && new Date(s.start_time) < end).reduce((a,s) => a + s.duration, 0);
+    weekData.push(+(mins/60).toFixed(2));
+  }
+
+  destroyChart('trendChart');
+  APP.charts.trend = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: weekLabels,
+      datasets: [{ data: weekData, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: true, tension: 0.4, pointBackgroundColor: '#10B981', pointRadius: 4 }]
+    },
+    options: { ...CHART_DEFAULTS }
+  });
+
+  // Distraction pie
+  const distract = getDistractionData();
+  destroyChart('distractionChart2');
+  if (distract.labels.length) {
+    APP.charts.distraction2 = new Chart(document.getElementById('distractionChart2'), {
+      type: 'doughnut',
+      data: {
+        labels: distract.labels,
+        datasets: [{ data: distract.data, backgroundColor: ['#EF4444','#F59E0B','#10B981','#3B82F6','#8B5CF6','#06B6D4'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { color: '#8B9EC7', font: { size: 11 }, boxWidth: 10 } } } }
+    });
+  }
+
+  // Sessions table
+  const tbody = document.getElementById('sessions-table-body');
+  tbody.innerHTML = APP.sessions.slice(0, 50).map(s => {
+    const d = new Date(s.start_time);
+    const dateStr = d.toLocaleDateString('en', {month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const statusCls = s.status === 'completed' ? 'tag-green' : 'tag-red';
+    const statusLabel = s.status === 'completed' ? '✓ Completed' : '✗ Interrupted';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 12px;font-size:13px">${s.label || 'Focus Session'}</td>
+      <td style="padding:10px 12px;font-size:12px;color:var(--text2)">${dateStr}</td>
+      <td style="padding:10px 12px;font-size:13px;font-family:var(--mono)">${s.duration}m</td>
+      <td style="padding:10px 12px"><span class="tag ${statusCls}">${statusLabel}</span></td>
+      <td style="padding:10px 12px;font-size:12px;color:var(--text2)">${s.distraction || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function destroyChart(id) {
+  const existing = Chart.getChart(id);
+  if (existing) existing.destroy();
+}
+
+// ============================================================
+// HEATMAP
+// ============================================================
+function initHeatmap() {
+  const container = document.getElementById('heatmap-container');
+  const weeks = 12;
+  const cols = [];
+  const now = new Date();
+  
+  // Get session counts by day
+  const sessionsByDay = {};
+  APP.sessions.forEach(s => {
+    const key = new Date(s.start_time).toDateString();
+    sessionsByDay[key] = (sessionsByDay[key] || 0) + 1;
+  });
+
+  for (let w = weeks - 1; w >= 0; w--) {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'heatmap-col';
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - (w * 7) - (6 - d));
+      const count = sessionsByDay[date.toDateString()] || 0;
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      if (count >= 1) cell.classList.add('l1');
+      if (count >= 3) cell.classList.add('l2');
+      if (count >= 5) cell.classList.add('l3');
+      if (count >= 7) cell.classList.add('l4');
+      cell.title = date.toLocaleDateString() + ': ' + count + ' sessions';
+      colDiv.appendChild(cell);
+    }
+    cols.push(colDiv);
+  }
+  container.innerHTML = '';
+  cols.forEach(c => container.appendChild(c));
+}
+
+// ============================================================
+// ACHIEVEMENTS
+// ============================================================
+function renderAchievements() {
+  const hours = getTotalHours();
+  const streak = getStreak();
+  const level = getLevel(hours);
+  const nextLevel = LEVELS.find(l => l.level === level.level + 1) || level;
+
+  document.getElementById('level-num-big').textContent = level.level;
+  document.getElementById('level-title-big').textContent = level.title;
+  document.getElementById('total-hours-ach').textContent = hours.toFixed(1) + 'h';
+  document.getElementById('sessions-ach').textContent = APP.sessions.length + ' sessions';
+  document.getElementById('streak-num-ach').textContent = streak;
+
+  const pct = nextLevel !== level ? Math.min(100, Math.round((hours - level.minHours) / (nextLevel.minHours - level.minHours) * 100)) : 100;
+  document.getElementById('next-level-pct').textContent = pct + '%';
+  document.getElementById('level-bar-fill').style.width = pct + '%';
+  document.getElementById('hours-to-next').textContent = nextLevel !== level ? (nextLevel.minHours - hours).toFixed(1) + 'h' : '—';
+
+  // Streak days
+  const streakDays = document.getElementById('streak-days');
+  const days = ['M','T','W','T','F','S','S'];
+  const now = new Date();
+  const sessionDates = new Set(APP.sessions.map(s => new Date(s.start_time).toDateString()));
+  let html = '<div style="display:flex;gap:6px;align-items:center">';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    const active = sessionDates.has(d.toDateString());
+    html += `<div style="text-align:center">
+      <div style="width:24px;height:24px;border-radius:50%;background:${active ? 'var(--accent)' : 'var(--surface3)'};margin-bottom:3px"></div>
+      <div style="font-size:10px;color:var(--text2)">${days[6-i]}</div>
+    </div>`;
+  }
+  html += '</div>';
+  streakDays.innerHTML = html;
+
+  // Badges
+  const container = document.getElementById('badges-container');
+  let unlocked = 0;
+  container.innerHTML = BADGES.map(b => {
+    const isUnlocked = b.condition(APP.sessions, hours, streak);
+    if (isUnlocked) unlocked++;
+    return `<div class="badge-card ${isUnlocked ? 'unlocked' : 'badge-locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="text-xs text-muted" style="margin-top:4px">${b.desc}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('badge-count').textContent = unlocked + ' / ' + BADGES.length + ' unlocked';
+}
+
+function checkBadges() {
+  const hours = getTotalHours();
+  const streak = getStreak();
+  BADGES.forEach(b => {
+    if (b.condition(APP.sessions, hours, streak)) {
+      const key = 'badge_shown_' + b.id;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        setTimeout(() => toast('🏆 Badge unlocked: ' + b.name + '!', 'success'), 500);
+      }
+    }
+  });
+}
+
+// ============================================================
+// AI REPORT
+// ============================================================
+function generateReport() {
+  const hours = getTotalHours();
+  const streak = getStreak();
+  const score = computeFocusScore();
+  const weekSessions = APP.sessions.filter(s => {
+    const d = new Date(s.start_time);
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    return d >= weekAgo;
+  });
+  const avgDur = weekSessions.length ? Math.round(weekSessions.reduce((a,s) => a + s.duration, 0) / weekSessions.length) : 0;
+  
+  document.getElementById('r-total-h').textContent = hours.toFixed(1) + 'h';
+  document.getElementById('r-sessions').textContent = weekSessions.length;
+  document.getElementById('r-avg-dur').textContent = avgDur + 'm';
+  document.getElementById('r-score').textContent = score;
+
+  // Distraction analysis
+  const distTypes = {};
+  APP.distractions.forEach(d => { distTypes[d.type] = (distTypes[d.type] || 0) + 1; });
+  const topDistraction = Object.entries(distTypes).sort((a,b) => b[1]-a[1])[0];
+  const totalDistractions = Object.values(distTypes).reduce((a,b) => a+b, 0);
+  const topPct = topDistraction ? Math.round(topDistraction[1] / totalDistractions * 100) : 0;
+
+  // Hour analysis
+  const hourCounts = {};
+  APP.sessions.filter(s => s.status === 'completed').forEach(s => {
+    const h = new Date(s.start_time).getHours();
+    const bucket = h < 12 ? 'Morning (6–12)' : h < 18 ? 'Afternoon (12–18)' : 'Evening (18–24)';
+    hourCounts[bucket] = (hourCounts[bucket] || 0) + s.duration;
+  });
+  const bestTime = Object.entries(hourCounts).sort((a,b) => b[1]-a[1])[0];
+
+  // Completed vs interrupted
+  const completed = APP.sessions.filter(s => s.status === 'completed').length;
+  const interrupted = APP.sessions.filter(s => s.status === 'interrupted').length;
+  const completionRate = APP.sessions.length ? Math.round(completed / APP.sessions.length * 100) : 0;
+
+  const insights = [
+    { icon: '📈', text: `<strong>Productivity Trend:</strong> <span>You've accumulated <strong style="color:var(--text)">${hours.toFixed(1)} total hours</strong> of deep work. ${hours >= 10 ? 'You\'re building serious focus momentum!' : 'Keep going — 10h is your next milestone.'}</span>` },
+    { icon: '⏰', text: `<strong>Peak Focus Window:</strong> <span>${bestTime ? '<strong style="color:var(--text)">' + bestTime[0] + '</strong> is your most productive period.' : 'Log more sessions to identify your peak time.'} Schedule your hardest tasks during this window.</span>` },
+    { icon: '🚫', text: topDistraction ? `<strong>Top Distraction:</strong> <span><strong style="color:var(--red)">${topDistraction[0]}</strong> accounts for <strong style="color:var(--text)">${topPct}%</strong> of your interruptions. Try removing this app during sessions.</span>` : `<strong>Distraction Status:</strong> <span>No distractions logged yet — impressive focus discipline!</span>` },
+    { icon: '✅', text: `<strong>Session Completion Rate:</strong> <span>You complete <strong style="color:var(--green)">${completionRate}%</strong> of your sessions (${completed} completed, ${interrupted} interrupted). ${completionRate >= 80 ? 'Excellent discipline!' : 'Try shorter sessions to improve this rate.'}</span>` },
+    { icon: '🔥', text: `<strong>Streak Analysis:</strong> <span>Current streak: <strong style="color:var(--yellow)">${streak} days</strong>. ${streak >= 5 ? 'You\'re in the habit zone!' : 'Focus daily to build a stronger habit loop.'}</span>` },
+    { icon: '🎯', text: `<strong>Average Session Length:</strong> <span><strong style="color:var(--text)">${avgDur} minutes</strong>. ${avgDur >= 45 ? 'Great — you\'re achieving deep work depth.' : 'Consider pushing to 45+ min for deeper cognitive flow states.'}</span>` }
+  ];
+
+  document.getElementById('ai-insights-list').innerHTML = insights.map(i => `<div class="ai-insight"><span class="ai-insight-icon">${i.icon}</span><div>${i.text}</div></div>`).join('');
+
+  const suggestions = [
+    { icon: '🌅', title: 'Time-Block Your Calendar', desc: 'Reserve 9–11 AM for your deepest work. This protects your peak cognitive hours from meetings and notifications.' },
+    { icon: '📵', title: 'Phone-Free Zone', desc: 'Put your phone in a drawer or another room during focus sessions. Physical distance reduces temptation by 70%.' },
+    { icon: '⬆️', title: 'Extend Sessions Gradually', desc: `Your average is ${avgDur}min. Add 5 minutes each week to build your sustained attention capacity.` },
+    { icon: '🌊', title: 'Leverage Your Peak Window', desc: bestTime ? `You focus best in the ${bestTime[0].toLowerCase()}. Move routine tasks to other times and guard this slot.` : 'Track your sessions to discover your personal peak focus window.' }
+  ];
+
+  document.getElementById('suggestions-list').innerHTML = suggestions.map(s => `
+    <div class="ai-insight" style="padding:14px 0">
+      <span class="ai-insight-icon" style="font-size:20px">${s.icon}</span>
+      <div>
+        <strong>${s.title}</strong><br>
+        <span style="font-size:13px;color:var(--text2)">${s.desc}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ============================================================
+// PROFILE
+// ============================================================
+function renderProfile() {
+  if (!APP.user) return;
+  const initials = APP.user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('profile-avatar').textContent = initials;
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('profile-name').textContent = APP.user.name;
+  document.getElementById('profile-email').textContent = APP.user.email;
+  document.getElementById('profile-name-input').value = APP.user.name;
+  document.getElementById('profile-email-input').value = APP.user.email;
+  document.getElementById('profile-goal').value = APP.settings.goal;
+  document.getElementById('sb-name').textContent = APP.user.name;
+  const hours = getTotalHours();
+  const level = getLevel(hours);
+  const streak = getStreak();
+  document.getElementById('profile-level-tag').textContent = 'Level ' + level.level + ' · ' + level.title;
+  document.getElementById('profile-streak').textContent = streak;
+  document.getElementById('ps-hours').textContent = hours.toFixed(1) + 'h';
+  document.getElementById('ps-sessions').textContent = APP.sessions.length;
+}
+
+function saveProfile() {
+  APP.user.name = document.getElementById('profile-name-input').value || APP.user.name;
+  APP.settings.goal = parseInt(document.getElementById('profile-goal').value) || 5;
+  saveState();
+  renderProfile();
+  updateDashboardStats();
+  toast('Profile saved!', 'success');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function loadSettingsUI() {
+  document.getElementById('setting-duration').value = APP.settings.duration;
+  document.getElementById('setting-break').value = APP.settings.breakDuration;
+  document.getElementById('setting-goal').value = APP.settings.goal;
+  document.getElementById('setting-sound').checked = APP.settings.sound;
+  document.getElementById('setting-autobreak').checked = APP.settings.autoBreak;
+  document.getElementById('setting-distraction').checked = APP.settings.distractionLogging;
+}
+
+function saveSettings() {
+  APP.settings.duration = parseInt(document.getElementById('setting-duration').value);
+  APP.settings.breakDuration = parseInt(document.getElementById('setting-break').value);
+  APP.settings.goal = parseInt(document.getElementById('setting-goal').value);
+  APP.settings.sound = document.getElementById('setting-sound').checked;
+  APP.settings.autoBreak = document.getElementById('setting-autobreak').checked;
+  APP.settings.distractionLogging = document.getElementById('setting-distraction').checked;
+  saveState();
+  setPreset(APP.settings.duration);
+  toast('Settings saved!', 'success');
+}
+
+function resetAllData() {
+  if (!confirm('This will delete ALL your sessions, achievements, and history. This cannot be undone. Are you sure?')) return;
+  APP.sessions = [];
+  APP.distractions = [];
+  saveState();
+  // Clear badge notifications
+  BADGES.forEach(b => localStorage.removeItem('badge_shown_' + b.id));
+  updateDashboardStats();
+  initHeatmap();
+  toast('All data reset. Starting fresh! 🌱', 'success');
+}
+
+function updateSidebarUser() {
+  if (!APP.user) return;
+  const initials = (APP.user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('sb-name').textContent = APP.user.name;
+  const level = getLevel(getTotalHours());
+  document.getElementById('sb-level').textContent = 'Level ' + level.level + ' · ' + level.title;
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, type = '') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  loadState();
+  
+  // Set date
+  const now = new Date();
+  if (document.getElementById('dash-date')) {
+    document.getElementById('dash-date').textContent = now.toLocaleDateString('en', {weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  }
+  
+  // Init heatmap
+  initHeatmap();
+  
+  // Rotate focus tips
+  const tips = document.getElementById('focus-tip');
+  if (tips) {
+    const tip = FOCUS_TIPS[Math.floor(Math.random() * FOCUS_TIPS.length)];
+    tips.innerHTML = tip;
+  }
+  
+  // Check if user session exists
+  if (APP.user) {
+    updateSidebarUser();
+    showPage('page-app');
+    switchTab('dashboard');
+  }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.code === 'Space') { e.preventDefault(); if (document.getElementById('tab-timer').style.display !== 'none') toggleTimer(); }
+  if (e.code === 'KeyR') { if (document.getElementById('tab-timer').style.display !== 'none') resetTimer(); }
+});
+</script>
+</body>
+</html>
